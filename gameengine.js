@@ -60,26 +60,20 @@ GameEngine.prototype.start = function () {
 GameEngine.prototype.startInput = function () {
     console.log('Starting input');
     var that = this;
+    that.space = false;
 
     var getXandY = function (e) {
         var x = e.clientX - that.ctx.canvas.getBoundingClientRect().left;
         var y = e.clientY - that.ctx.canvas.getBoundingClientRect().top;
-
-        // if (x < 1024) {
-        //     x = Math.floor(x / 32);
-        //     y = Math.floor(y / 32);
-        // }
-
         return { x: x, y: y };
     }
 
     this.ctx.canvas.addEventListener("keydown", function (e) {
-        if (String.fromCharCode(e.which) === ' ') that.space = true;
+        if (String.fromCharCode(e.which) === ' ') that.space = !that.space;
         if (e.keyCode == '38' || e.keyCode == '87') that.up = true;
         if (e.keyCode == '40' || e.keyCode == '83') that.down = true;
         if (e.keyCode == '37' || e.keyCode == '65') that.left = true;
         if (e.keyCode == '39' || e.keyCode == '68') that.right = true;
-        console.log(e);
         e.preventDefault();
     }, false);
 
@@ -88,13 +82,15 @@ GameEngine.prototype.startInput = function () {
         if (e.keyCode == '40' || e.keyCode == '83') that.down = false;
         if (e.keyCode == '37' || e.keyCode == '65') that.left = false;
         if (e.keyCode == '39' || e.keyCode == '68') that.right = false;
-        console.log(e);
         e.preventDefault();
     }, false);
 
     this.ctx.canvas.addEventListener("mousemove", function (e) {
         that.mouse = getXandY(e);
-        console.log(that.mouse);
+    }, false);
+
+    this.ctx.canvas.addEventListener("mousedown", function (e) {
+        that.clickmouse = true;
     }, false);
 
     console.log('Input started');
@@ -136,7 +132,7 @@ GameEngine.prototype.loop = function () {
     this.clockTick = this.timer.tick();
     this.update();
     this.draw();
-    this.space = null;
+    this.clickmouse = false;
 }
 
 function Entity(game, x, y) {
