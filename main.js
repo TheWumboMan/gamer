@@ -115,8 +115,10 @@ Unicorn.prototype.draw = function (ctx, angle) {
 }
 
 function Crump(game) {
-    this.still = new Animation(ASSET_MANAGER.getAsset("./img/LilCrump.png"), 0, 128, 128, 128, 0.4, 2, true, false);
+    this.idle = new Animation(ASSET_MANAGER.getAsset("./img/LilCrump.png"), 0, 128, 128, 128, 0.4, 2, true, false);
     this.walk = new Animation(ASSET_MANAGER.getAsset("./img/LilCrump.png"), 0, 0, 128, 128, 0.1, 8, true, false);
+    this.swordIdle = new Animation(ASSET_MANAGER.getAsset("./img/LilCrump.png"), 0, 456, 200, 200, 0.4, 2, true, false);
+    this.swordWalk = new Animation(ASSET_MANAGER.getAsset("./img/LilCrump.png"), 0, 256, 200, 200, 0.1, 8, true, false);
     this.radius = 128;
     this.ground = 400;
     Entity.call(this, game, 300, 400);
@@ -154,11 +156,13 @@ Crump.prototype.draw = function (ctx) {
 
     var rotation = Math.atan2(this.game.mouse.y - this.y, this.game.mouse.x - this.x) + Math.PI/2;
 
-    if (!this.game.up && !this.game.down && !this.game.left && !this.game.right) {
-        this.still.drawFrame(this.game.clockTick, ctx, this.x, this.y, rotation);
+    if (this.game.up || this.game.left || this.game.down || this.game.right) {
+        if (this.game.space) this.swordWalk.drawFrame(this.game.clockTick, ctx, this.x, this.y, rotation);
+        else this.walk.drawFrame(this.game.clockTick, ctx, this.x, this.y, rotation);
     }
     else {
-        this.walk.drawFrame(this.game.clockTick, ctx, this.x, this.y, rotation);
+        if (this.game.space) this.swordIdle.drawFrame(this.game.clockTick, ctx, this.x, this.y, rotation);
+        else this.idle.drawFrame(this.game.clockTick, ctx, this.x, this.y, rotation);
     }
     Entity.prototype.draw.call(this);
 }

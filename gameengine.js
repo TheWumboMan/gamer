@@ -64,12 +64,6 @@ GameEngine.prototype.startInput = function () {
     var getXandY = function (e) {
         var x = e.clientX - that.ctx.canvas.getBoundingClientRect().left;
         var y = e.clientY - that.ctx.canvas.getBoundingClientRect().top;
-
-        // if (x < 1024) {
-        //     x = Math.floor(x / 32);
-        //     y = Math.floor(y / 32);
-        // }
-
         return { x: x, y: y };
     }
 
@@ -84,6 +78,7 @@ GameEngine.prototype.startInput = function () {
     }, false);
 
     this.ctx.canvas.addEventListener("keyup", function (e) {
+        if (String.fromCharCode(e.which) === ' ') that.space = false;
         if (e.keyCode == '38' || e.keyCode == '87') that.up = false;
         if (e.keyCode == '40' || e.keyCode == '83') that.down = false;
         if (e.keyCode == '37' || e.keyCode == '65') that.left = false;
@@ -136,7 +131,6 @@ GameEngine.prototype.loop = function () {
     this.clockTick = this.timer.tick();
     this.update();
     this.draw();
-    this.space = null;
 }
 
 function Entity(game, x, y) {
