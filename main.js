@@ -71,46 +71,10 @@ Background.prototype.draw = function (ctx) {
     Entity.prototype.draw.call(this);
 }
 
-function Unicorn(game) {
-    this.animation = new Animation(ASSET_MANAGER.getAsset("./img/RobotUnicorn.png"), 0, 0, 206, 110, 0.02, 30, true, true);
-    this.jumpAnimation = new Animation(ASSET_MANAGER.getAsset("./img/RobotUnicorn.png"), 618, 334, 174, 138, 0.02, 40, false, true);
-    this.jumping = false;
-    this.radius = 100;
-    this.ground = 400;
-    Entity.call(this, game, 0, 400);
-}
-
-Unicorn.prototype = new Entity();
-Unicorn.prototype.constructor = Unicorn;
-
-Unicorn.prototype.update = function () {
-    if (this.game.space) this.jumping = true;
-    if (this.jumping) {
-        if (this.jumpAnimation.isDone()) {
-            this.jumpAnimation.elapsedTime = 0;
-            this.jumping = false;
-        }
-        var jumpDistance = this.jumpAnimation.elapsedTime / this.jumpAnimation.totalTime;
-        var totalHeight = 200;
-
-        if (jumpDistance > 0.5)
-            jumpDistance = 1 - jumpDistance;
-
-        //var height = jumpDistance * 2 * totalHeight;
-        var height = totalHeight*(-4 * (jumpDistance * jumpDistance - jumpDistance));
-        this.y = this.ground - height;
-    }
-    Entity.prototype.update.call(this);
-}
-
-Unicorn.prototype.draw = function (ctx, angle) {
-    if (this.jumping) {
-        this.jumpAnimation.drawFrame(this.game.clockTick, ctx, this.x + 17, this.y - 34, 0);
-    }
-    else {
-        this.animation.drawFrame(this.game.clockTick, ctx, this.x, this.y, 0);
-    }
-    Entity.prototype.draw.call(this, angle);
+function distance(a, b) {
+    var dx = a.x - b.x;
+    var dy = a.y - b.y;
+    return Math.sqrt(dx * dx + dy * dy);
 }
 
 function Crump(game) {
@@ -119,9 +83,8 @@ function Crump(game) {
     this.swordIdle = new Animation(ASSET_MANAGER.getAsset("./img/LilCrump.png"), 0, 456, 200, 200, 0.4, 2, true, false);
     this.swordWalk = new Animation(ASSET_MANAGER.getAsset("./img/LilCrump.png"), 0, 256, 200, 200, 0.1, 8, true, false);
     this.swordAttack = new Animation(ASSET_MANAGER.getAsset("./img/LilCrump.png"), 400, 456, 200, 200, 0.1, 5, false, false);
-    this.radius = 128;
-    this.ground = 400;
-    Entity.call(this, game, 300, 400);
+    this.radius = 38;
+    Entity.call(this, game, 400, 400);
 
     this.velocity = { x: 0, y: 0 };
     this.acceleration = 100;
@@ -134,9 +97,11 @@ Crump.prototype.constructor = Crump;
 Crump.prototype.update = function () {
     if (this.game.clickmouse && this.game.space) this.attacking = true;
     if (this.attacking) {
+        this.radius = 68;
         if (this.swordAttack.isDone()) {
             this.swordAttack.elapsedTime = 0;
             this.attacking = false;
+            this.radius = 38;
         }
     }
 
@@ -152,6 +117,17 @@ Crump.prototype.update = function () {
         this.velocity.y *= ratio;
     }
     Entity.prototype.update.call(this);
+
+    if (this.collideLeft() || this.collideRight()) {
+        this.velocity.x = -this.velocity.x * (1/friction);
+        if (this.collideLeft()) this.x = this.radius;
+        if (this.collideRight()) this.x = 800 - this.radius;
+    }
+    if (this.collideTop() || this.collideBottom()) {
+        this.velocity.y = -this.velocity.y * (1/friction);
+        if (this.collideTop()) this.y = this.radius;
+        if (this.collideBottom()) this.y = 800 - this.radius;
+    }
 
     this.x += this.velocity.x * this.game.clockTick;
     this.y += this.velocity.y * this.game.clockTick;
@@ -178,6 +154,81 @@ Crump.prototype.draw = function (ctx) {
     Entity.prototype.draw.call(this);
 }
 
+function Enemy(game) {
+    this.animation = new Animation(ASSET_MANAGER.getAsset("./img/Enemy.png"), 0, 0, 128, 128, 0.4, 2, true, false);
+    this.radius = 38;
+    this.enemy = true;
+    Entity.call(this, game, 200, 200);
+
+    this.velocity = { x: 0, y: 0 };
+    this.acceleration = 100;
+    this.maxSpeed = 200;
+}
+
+Enemy.prototype = new Entity();
+Enemy.prototype.constructor = Enemy;
+
+Enemy.prototype.update = function () {
+    Entity.prototype.update.call(this);
+
+    if (this.collideLeft() || this.collideRight()) {
+        this.velocity.x = -this.velocity.x * (1/friction);
+        if (this.collideLeft()) this.x = this.radius;
+        if (this.collideRight()) this.x = 800 - this.radius;
+        this.x += this.velocity.x * this.game.clockTick;
+        this.y += this.velocity.y * this.game.clockTick;
+    }
+    if (this.collideTop() || this.collideBottom()) {
+        this.velocity.y = -this.velocity.y * (1/friction);
+        if (this.collideTop()) this.y = this.radius;
+        if (this.collideBottom()) this.y = 800 - this.radius;
+        this.x += this.velocity.x * this.game.clockTick;
+        this.y += this.velocity.y * this.game.clockTick;
+    }
+
+    for (var i = 0; i < this.game.entities.length; i++) {
+        var ent = this.game.entities[i];
+        if (!ent.enemy) {
+            var dist = distance(this, ent);
+            if (dist > this.radius + ent.radius + 10) {
+                var difX = (ent.x - this.x)/dist;
+                var difY = (ent.y - this.y)/dist;
+                this.velocity.x += difX * this.acceleration / (dist*dist);
+                this.velocity.y += difY * this.acceleration / (dist * dist);
+                var speed = Math.sqrt(this.velocity.x*this.velocity.x + this.velocity.y*this.velocity.y);
+                if (speed > this.maxSpeed) {
+                    var ratio = this.maxSpeed / speed;
+                    this.velocity.x *= ratio;
+                    this.velocity.y *= ratio;
+                }
+            }
+            if (dist > this.radius + ent.radius) {
+                var difX = (ent.x - this.x) / dist;
+                var difY = (ent.y - this.y) / dist;
+                this.velocity.x -= difX * this.acceleration / (dist * dist);
+                this.velocity.y -= difY * this.acceleration / (dist * dist);
+                var speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
+                if (speed > this.maxSpeed) {
+                    var ratio = this.maxSpeed / speed;
+                    this.velocity.x *= ratio;
+                    this.velocity.y *= ratio;
+                }
+            }
+        }
+    }
+
+    this.x += this.velocity.x * this.game.clockTick;
+    this.y += this.velocity.y * this.game.clockTick;
+
+    this.velocity.x -= friction * this.game.clockTick * this.velocity.x;
+    this.velocity.y -= friction * this.game.clockTick * this.velocity.y;
+}
+
+Enemy.prototype.draw = function (ctx) {
+    this.animation.drawFrame(this.game.clockTick, ctx, this.x, this.y, 0);
+    Entity.prototype.draw.call(this);
+}
+
 // the "main" code begins here
 
 var friction = 8;
@@ -185,8 +236,8 @@ var friction = 8;
 var ASSET_MANAGER = new AssetManager();
 
 ASSET_MANAGER.queueDownload("./img/background.png")
-ASSET_MANAGER.queueDownload("./img/RobotUnicorn.png");
 ASSET_MANAGER.queueDownload("./img/LilCrump.png");
+ASSET_MANAGER.queueDownload("./img/Enemy.png");
 
 ASSET_MANAGER.downloadAll(function () {
     console.log("starting up da sheild");
@@ -195,12 +246,12 @@ ASSET_MANAGER.downloadAll(function () {
 
     var gameEngine = new GameEngine();
     var bg = new Background(gameEngine);
-//    var unicorn = new Unicorn(gameEngine);
     var crump = new Crump(gameEngine);
+    var enemy = new Enemy(gameEngine);
 
     gameEngine.addEntity(bg);
-//    gameEngine.addEntity(unicorn);
     gameEngine.addEntity(crump);
+    gameEngine.addEntity(enemy);
  
     gameEngine.init(ctx);
     gameEngine.start();

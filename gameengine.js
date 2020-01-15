@@ -139,7 +139,28 @@ function Entity(game, x, y) {
     this.game = game;
     this.x = x;
     this.y = y;
+    this.enemy = false;
     this.removeFromWorld = false;
+}
+
+Entity.prototype.collide = function (other) {
+    return distance(this, other) < this.radius + other.radius;
+}
+
+Entity.prototype.collideLeft = function () {
+    return (this.x - this.radius) < 0;
+}
+
+Entity.prototype.collideRight = function () {
+    return (this.x + this.radius) > 800;
+}
+
+Entity.prototype.collideTop = function () {
+    return (this.y - this.radius) < 0;
+}
+
+Entity.prototype.collideBottom = function () {
+    return (this.y + this.radius) > 800;
 }
 
 Entity.prototype.update = function () {
