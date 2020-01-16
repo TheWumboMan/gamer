@@ -74,6 +74,7 @@ GameEngine.prototype.startInput = function () {
         if (e.keyCode == '40' || e.keyCode == '83') that.down = true;
         if (e.keyCode == '37' || e.keyCode == '65') that.left = true;
         if (e.keyCode == '39' || e.keyCode == '68') that.right = true;
+        if (e.keyCode == '88') that.spawn = true;
         e.preventDefault();
     }, false);
 
@@ -133,6 +134,7 @@ GameEngine.prototype.loop = function () {
     this.update();
     this.draw();
     this.clickmouse = false;
+    this.spawn = null;
 }
 
 function Entity(game, x, y) {

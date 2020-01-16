@@ -158,7 +158,7 @@ function Enemy(game) {
     this.animation = new Animation(ASSET_MANAGER.getAsset("./img/Enemy.png"), 0, 0, 128, 128, 0.4, 2, true, false);
     this.radius = 38;
     this.enemy = true;
-    Entity.call(this, game, 200, 200);
+    Entity.call(this, game, Math.random()*(700 - 100)+100, Math.random()*(700 - 100)+100);
 
     this.velocity = { x: 0, y: 0 };
     this.acceleration = 100;
@@ -169,6 +169,8 @@ Enemy.prototype = new Entity();
 Enemy.prototype.constructor = Enemy;
 
 Enemy.prototype.update = function () {
+    if (this.game.spawn) this.game.addEntity(new Enemy(this.game));
+
     Entity.prototype.update.call(this);
 
     if (this.collideLeft() || this.collideRight()) {
@@ -250,8 +252,8 @@ ASSET_MANAGER.downloadAll(function () {
     var enemy = new Enemy(gameEngine);
 
     gameEngine.addEntity(bg);
-    gameEngine.addEntity(crump);
     gameEngine.addEntity(enemy);
+    gameEngine.addEntity(crump);
  
     gameEngine.init(ctx);
     gameEngine.start();
