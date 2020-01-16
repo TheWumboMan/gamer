@@ -137,10 +137,17 @@ GameEngine.prototype.loop = function () {
     this.spawn = null;
 }
 
-function Entity(game, x, y) {
+function distance(a, b) {
+    var dx = a.x - b.x;
+    var dy = a.y - b.y;
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+function Entity(game, x, y, rot = 0) {
     this.game = game;
     this.x = x;
     this.y = y;
+    this.rotation = rot;
     this.removeFromWorld = false;
 }
 
