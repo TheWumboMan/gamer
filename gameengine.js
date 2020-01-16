@@ -141,7 +141,6 @@ function Entity(game, x, y) {
     this.game = game;
     this.x = x;
     this.y = y;
-    this.enemy = false;
     this.removeFromWorld = false;
 }
 

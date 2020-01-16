@@ -84,6 +84,7 @@ function Crump(game) {
     this.swordWalk = new Animation(ASSET_MANAGER.getAsset("./img/LilCrump.png"), 0, 256, 200, 200, 0.1, 8, true, false);
     this.swordAttack = new Animation(ASSET_MANAGER.getAsset("./img/LilCrump.png"), 400, 456, 200, 200, 0.1, 5, false, false);
     this.radius = 38;
+    this.player = true;
     Entity.call(this, game, 400, 400);
 
     this.velocity = { x: 0, y: 0 };
@@ -110,12 +111,6 @@ Crump.prototype.update = function () {
     if (this.game.left) this.velocity.x -= this.acceleration;
     if (this.game.right) this.velocity.x += this.acceleration;
 
-    var speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
-    if (speed > this.maxSpeed) {
-        var ratio = this.maxSpeed / speed;
-        this.velocity.x *= ratio;
-        this.velocity.y *= ratio;
-    }
     Entity.prototype.update.call(this);
 
     if (this.collideLeft() || this.collideRight()) {
@@ -129,6 +124,12 @@ Crump.prototype.update = function () {
         if (this.collideBottom()) this.y = 800 - this.radius;
     }
 
+    var speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
+    if (speed > this.maxSpeed) {
+        var ratio = this.maxSpeed / speed;
+        this.velocity.x *= ratio;
+        this.velocity.y *= ratio;
+    }
     this.x += this.velocity.x * this.game.clockTick;
     this.y += this.velocity.y * this.game.clockTick;
 
@@ -157,12 +158,11 @@ Crump.prototype.draw = function (ctx) {
 function Enemy(game) {
     this.animation = new Animation(ASSET_MANAGER.getAsset("./img/Enemy.png"), 0, 0, 128, 128, 0.4, 2, true, false);
     this.radius = 38;
-    this.enemy = true;
     Entity.call(this, game, Math.random()*(700 - 100)+100, Math.random()*(700 - 100)+100);
 
     this.velocity = { x: 0, y: 0 };
     this.acceleration = 100;
-    this.maxSpeed = 200;
+    this.maxSpeed = 150;
 }
 
 Enemy.prototype = new Entity();
@@ -177,48 +177,33 @@ Enemy.prototype.update = function () {
         this.velocity.x = -this.velocity.x * (1/friction);
         if (this.collideLeft()) this.x = this.radius;
         if (this.collideRight()) this.x = 800 - this.radius;
-        this.x += this.velocity.x * this.game.clockTick;
-        this.y += this.velocity.y * this.game.clockTick;
     }
     if (this.collideTop() || this.collideBottom()) {
         this.velocity.y = -this.velocity.y * (1/friction);
         if (this.collideTop()) this.y = this.radius;
         if (this.collideBottom()) this.y = 800 - this.radius;
-        this.x += this.velocity.x * this.game.clockTick;
-        this.y += this.velocity.y * this.game.clockTick;
     }
 
     for (var i = 0; i < this.game.entities.length; i++) {
         var ent = this.game.entities[i];
-        if (!ent.enemy) {
+        if (ent.player) {
             var dist = distance(this, ent);
-            if (dist > this.radius + ent.radius + 10) {
-                var difX = (ent.x - this.x)/dist;
-                var difY = (ent.y - this.y)/dist;
-                this.velocity.x += difX * this.acceleration / (dist*dist);
-                this.velocity.y += difY * this.acceleration / (dist * dist);
-                var speed = Math.sqrt(this.velocity.x*this.velocity.x + this.velocity.y*this.velocity.y);
-                if (speed > this.maxSpeed) {
-                    var ratio = this.maxSpeed / speed;
-                    this.velocity.x *= ratio;
-                    this.velocity.y *= ratio;
-                }
+            if (this.collide(ent)) {
+                 
             }
-            if (dist > this.radius + ent.radius) {
-                var difX = (ent.x - this.x) / dist;
-                var difY = (ent.y - this.y) / dist;
-                this.velocity.x -= difX * this.acceleration / (dist * dist);
-                this.velocity.y -= difY * this.acceleration / (dist * dist);
-                var speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
-                if (speed > this.maxSpeed) {
-                    var ratio = this.maxSpeed / speed;
-                    this.velocity.x *= ratio;
-                    this.velocity.y *= ratio;
-                }
-            }
+            var difX = (ent.x - this.x)/dist;
+            var difY = (ent.y - this.y)/dist;
+            this.velocity.x += difX * this.acceleration;
+            this.velocity.y += difY * this.acceleration;
         }
     }
 
+    var speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
+    if (speed > this.maxSpeed) {
+        var ratio = this.maxSpeed / speed;
+        this.velocity.x *= ratio;
+        this.velocity.y *= ratio;
+    }
     this.x += this.velocity.x * this.game.clockTick;
     this.y += this.velocity.y * this.game.clockTick;
 
