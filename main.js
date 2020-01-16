@@ -121,7 +121,7 @@ function Crump(game) {
     this.swordAttack = new Animation(ASSET_MANAGER.getAsset("./img/LilCrump.png"), 400, 456, 200, 200, 0.1, 5, false, false);
     this.radius = 128;
     this.ground = 400;
-    Entity.call(this, game, 300, 400);
+    Entity.call(this, game, 400, 400);
 
     this.velocity = { x: 0, y: 0 };
     this.acceleration = 100;
