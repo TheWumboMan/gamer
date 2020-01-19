@@ -69,6 +69,10 @@ GameEngine.prototype.startInput = function () {
     }
 
     this.ctx.canvas.addEventListener("keydown", function (e) {
+
+        //new
+        if (event.shiftKey) that.shift = !that.shift;
+
         if (String.fromCharCode(e.which) === ' ') that.space = !that.space;
         if (e.keyCode == '38' || e.keyCode == '87') that.up = true;
         if (e.keyCode == '40' || e.keyCode == '83') that.down = true;
