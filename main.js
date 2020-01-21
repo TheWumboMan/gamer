@@ -80,7 +80,7 @@ var ASSET_MANAGER = new AssetManager();
 ASSET_MANAGER.queueDownload("./img/background.png")
 ASSET_MANAGER.queueDownload("./img/LilFrump.png");
 ASSET_MANAGER.queueDownload("./img/LilFrumpSheet.png");
-ASSET_MANAGER.queueDownload("./img/Enemy.png");
+ASSET_MANAGER.queueDownload("./img/EnemyBig.png");
 
 ASSET_MANAGER.downloadAll(function () {
     console.log("starting up da sheild");

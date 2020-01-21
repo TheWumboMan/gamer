@@ -1,5 +1,5 @@
 function Enemy(game) {
-    this.animation = new Animation(ASSET_MANAGER.getAsset("./img/Enemy.png"), 0, 0, 128, 128, 0.4, 2, true, false);
+    this.animation = new Animation(ASSET_MANAGER.getAsset("./img/EnemyBig.png"), 0, 0, 200, 200, 0.12, 8, true, false);
     this.radius = 38;
     this.enemy = true;
     this.velocity = { x: 0, y: 0 };
