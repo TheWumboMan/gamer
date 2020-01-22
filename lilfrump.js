@@ -15,14 +15,12 @@ function Frump(game) {
     this.velocity = { x: 0, y: 0 };
     this.acceleration = 100;
     this.maxSpeed = 250;
+    this.currentHealth = new health(this, 10);
 
     //new stuff
     this.alive = true;
     this.isDead = false;
-    this.health = 10;
     this.currentWeapon = "unarmed";
-    //that = this;
-
     Entity.call(this, game, 400, 400);
 }
 
@@ -59,6 +57,7 @@ Frump.prototype.update = function () {
         }        
     }
     // extra janky death system
+    if(this.currentHealth <= 0) this.alive = false;
     if(this.alive == false){
         this.maxSpeed == 0;
         this.velocity == 0;
@@ -87,15 +86,13 @@ Frump.prototype.update = function () {
     if (this.game.right) this.velocity.x += this.acceleration;
 
     if (this.collideLeft() || this.collideRight()) {
-
-        // janky death test
-        this.alive = false;
-
+        this.currentHealth -= 1;
         this.velocity.x = -this.velocity.x * (1/friction);
         if (this.collideLeft()) this.x = this.radius;
         if (this.collideRight()) this.x = 800 - this.radius;
     }
     if (this.collideTop() || this.collideBottom()) {
+        this.currentHealth -= 1;
         this.velocity.y = -this.velocity.y * (1/friction);
         if (this.collideTop()) this.y = this.radius;
         if (this.collideBottom()) this.y = 800 - this.radius;
@@ -129,6 +126,7 @@ Frump.prototype.draw = function (ctx) {
     else if(this.isDead == true){
         //supposed to just play the last frame of the death animation
         this.dead.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation);
+        
     }
     else{
         if (this.attacking) {
