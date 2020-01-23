@@ -94,7 +94,7 @@ GameEngine.prototype.startInput = function () {
         that.mouse = getXandY(e);
     }, false);
 
-    this.ctx.canvas.addEventListener("mousedown", function (e) {
+    this.ctx.canvas.addEventListener("click", function (e) {
         that.clickmouse = true;
     }, false);
 
@@ -156,6 +156,17 @@ function Entity(game, x, y, rot = 0) {
 }
 
 Entity.prototype.collide = function (other) {
+    if (this.enemy) {
+        var rotdif = 0;
+        //if (this.rotation < 3*Math.PI/4 && this.rotation > Math.PI/4) rotdif = other.rotation + this.rotation + Math.PI;
+        if (this.rotation > 3*Math.PI/4) rotdif = other.rotation + this.rotation;
+        else if (other.rotation > 5*Math.PI/4 || other.rotation < Math.PI/-4) rotdif = other.rotation
+        else rotdif = other.rotation - this.rotation;
+        console.log(rotdif*180/Math.PI);
+        if (rotdif > (5 * Math.PI / 4) && rotdif < (7 * Math.PI / 4))
+            return distance(this, other) < this.faces + other.faces;
+    }
+    
     return distance(this, other) < this.radius + other.radius;
 }
 
