@@ -156,17 +156,6 @@ function Entity(game, x, y, rot = 0) {
 }
 
 Entity.prototype.collide = function (other) {
-    if (this.enemy) {
-        var rotdif = 0;
-        //if (this.rotation < 3*Math.PI/4 && this.rotation > Math.PI/4) rotdif = other.rotation + this.rotation + Math.PI;
-        if (this.rotation > 3*Math.PI/4) rotdif = other.rotation + this.rotation;
-        else if (other.rotation > 5*Math.PI/4 || other.rotation < Math.PI/-4) rotdif = other.rotation
-        else rotdif = other.rotation - this.rotation;
-        console.log(rotdif*180/Math.PI);
-        if (rotdif > (5 * Math.PI / 4) && rotdif < (7 * Math.PI / 4))
-            return distance(this, other) < this.faces + other.faces;
-    }
-    
     return distance(this, other) < this.radius + other.radius;
 }
 
@@ -184,6 +173,18 @@ Entity.prototype.collideTop = function () {
 
 Entity.prototype.collideBottom = function () {
     return (this.y + this.radius) > 800;
+}
+
+Entity.prototype.hurt = function (other) {
+    if (this.enemy) {
+        var rotdif = 0;
+        if (other.rotation < 0) rotdif = this.rotation - other.rotation;
+        else rotdif = other.rotation - this.rotation;
+        if ((rotdif > 3*Math.PI/4 && rotdif < 5*Math.PI/4) || (rotdif > -Math.PI/4 && rotdif < Math.PI/4))
+            return distance(this, other) < this.range + other.faces;
+        return distance(this, other) < this.range + other.sides;
+    }
+    return distance(this, other) < this.range + other.faces;
 }
 
 Entity.prototype.update = function () {

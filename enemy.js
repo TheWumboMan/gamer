@@ -4,11 +4,15 @@ function Enemy(game) {
     this.sides = 38;
     this.faces = 20;
     this.radius = 20;
+    this.range = 65;
+    this.hit = false;
     this.attackTimer = 0;
+    this.hitTimer = 0;
     this.enemy = true;
     this.velocity = { x: 0, y: 0 };
     this.acceleration = 100;
     this.maxSpeed = 125;
+    this.health = 10;
     Entity.call(this, game, Math.random()*(700 - 100)+100, Math.random()*(700 - 100)+100);
 }
 
@@ -16,12 +20,19 @@ Enemy.prototype = new Entity();
 Enemy.prototype.constructor = Enemy;
 
 Enemy.prototype.update = function () {
+    //console.log('E: ' + this.health);
+    if (this.health <= 0) {
+        this.health = 10;
+        this.x = Math.random()*(700-100)+100;
+        this.y = Math.random()*(700-100)+100;
+    }
     if (this.attackTimer > 0) this.attackTimer--;
+    if (this.hitTimer > 0) this.hitTimer--;
+    if (this.hitTimer == 0) this.hit = false;
     if (this.attacking) {
         if (this.knifeAttack.isDone()) {
             this.knifeAttack.elapsedTime = 0;
             this.attacking = false;
-            this.attackTimer = 50;
         }
     }
 
@@ -44,7 +55,6 @@ Enemy.prototype.update = function () {
                 var difX = Math.cos(this.rotation);
                 var difY = Math.sin(this.rotation);
                 var delta = this.radius + ent.radius - distance(this, ent);
-                //var delta = this.faces + this.faces - distance(this, ent);
                 if (this.collide(ent)) {
                     this.velocity.x = -this.velocity.x * (1/friction);
                     this.velocity.y = -this.velocity.y * (1/friction);
@@ -58,7 +68,15 @@ Enemy.prototype.update = function () {
                     this.velocity.x += difX * this.acceleration;
                     this.velocity.y += difY * this.acceleration;
                 }
-                if (distance(this, ent) < 90 && this.attackTimer == 0) this.attacking = true;
+                if (distance(this, ent) < 90 && this.attackTimer == 0) {
+                    this.attacking = true;
+                    this.attackTimer = 100;
+                }
+                if (this.attacking && this.hurt(ent) && this.attackTimer <= 80 && !ent.hit) {
+                    ent.health--;
+                    ent.hit = true;
+                    ent.hitTimer = this.attackTimer;
+                }
             }
         }
     }

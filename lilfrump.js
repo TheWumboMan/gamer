@@ -13,21 +13,20 @@ function Frump(game) {
 
     this.sides = 38;
     this.faces = 20;
-    this.radius = 50;
+    this.radius = 20;
+    this.range = 58;
     this.player = true;
     this.velocity = { x: 0, y: 0 };
     this.acceleration = 100;
     this.maxSpeed = 250;
     this.attackTimer = 0;
+    this.hitTimer = 0;
+    this.hit = false;
 
     //new stuff
     this.alive = true;
     this.health = 10;
     this.weapon = "unarmed";
-
-    this.unarmedRange = 58;
-    this.knifeRange = 72;
-    this.swordRange = 118;
 
     Entity.call(this, game, 400, 400);
 }
@@ -36,32 +35,42 @@ Frump.prototype = new Entity();
 Frump.prototype.constructor = Frump;
 
 Frump.prototype.update = function () {
+    //console.log('P: ' + this.health);
     if (this.attackTimer > 0) this.attackTimer--;
+    if (this.hitTimer > 0) this.hitTimer--;
+    if (this.hitTimer == 0) this.hit = false;
     if (this.game.spawn) this.game.addEntity(new Enemy(this.game));
     if (this.game.shift) this.weapon = "knife";
     if (this.game.space) this.weapon = "sword";
     if (!this.game.shift & !this.game.space) this.weapon = "unarmed";
-    if (this.game.clickmouse && this.attackTimer == 0) this.attacking = true;
+    if (this.game.clickmouse && this.attackTimer == 0) {
+        this.attacking = true;
+        if (this.weapon == 'unarmed' || this.weapon == 'knife') this.attackTimer = 50;
+        else this.attackTimer = 40;
+    }
     if (this.attacking) {
-        if(this.weapon == "unarmed"){
+        if(this.weapon == "unarmed") {
+            this.range = 50;
             if (this.attack.isDone()) {
                 this.attack.elapsedTime = 0;
                 this.attacking = false;
-                this.attackTimer = 40;
+                this.attackTimer = 35;
             }
         }
-        if(this.weapon == "knife"){
+        if(this.weapon == "knife") {
+            this.range = 65;
             if (this.knifeAttack.isDone()) {
                 this.knifeAttack.elapsedTime = 0;
                 this.attacking = false;
-                this.attackTimer = 15;
+                this.attackTimer = 10;
             }
         }
-        if(this.weapon == "sword"){
+        if(this.weapon == "sword") {
+            this.range = 100;
             if (this.swordAttack.isDone()) {
                 this.swordAttack.elapsedTime = 0;
                 this.attacking = false;
-                this.attackTimer = 25;
+                this.attackTimer = 20;
             }
         }        
     }
@@ -73,18 +82,6 @@ Frump.prototype.update = function () {
     //     if (this.die.isDone()) {
     //         this.die.elapsedTime = 0;
     //         this.isDead == true;
-    //     }
-    // }
-    
-    //old code
-
-    // if (this.game.clickmouse && this.game.space) this.attacking = true;
-    // if (this.attacking) {
-    //     //this.radius = 68;
-    //     if (this.swordAttack.isDone()) {
-    //         this.swordAttack.elapsedTime = 0;
-    //         this.attacking = false;
-    //         this.radius = 38;
     //     }
     // }
 
@@ -104,7 +101,17 @@ Frump.prototype.update = function () {
         if (this.collideBottom()) this.y = 800 - this.radius;
     }
 
-    
+    for (var i = 0; i < this.game.entities.length; i++) {
+        var ent = this.game.entities[i];
+        if (ent.enemy) {
+            if (this.attacking && this.hurt(ent) && this.attackTimer <= 45 && !ent.hit) {
+                ent.health--;
+                ent.hit = true;
+                if (this.weapon == 'unarmed' || this.weapon == 'knife') ent.hitTimer = 10;
+                else ent.hitTimer = 20;
+            }
+        }
+    }
 
     var speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
     if (speed > this.maxSpeed) {
