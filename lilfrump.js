@@ -1,6 +1,7 @@
 function Frump(game) {
-    this.walk = new Animation(ASSET_MANAGER.getAsset("./img/LilFrump.png"), 0, 0, 200, 200, 0.1, 8, true, false);
     this.idle = new Animation(ASSET_MANAGER.getAsset("./img/LilFrump.png"), 0, 200, 200, 200, 0.4, 2, true, false);
+    this.walk = new Animation(ASSET_MANAGER.getAsset("./img/LilFrump.png"), 0, 0, 200, 200, 0.1, 8, true, false);
+    this.hurting = new Animation(ASSET_MANAGER.getAsset("./img/LilFrump.png"), 0, 1800, 200, 200, 0.1, 1, false, false);
     this.attack = new Animation(ASSET_MANAGER.getAsset("./img/LilFrump.png"), 400, 200, 200, 200, 0.1, 4, false, false);
     // this.die = new Animation(ASSET_MANAGER.getAsset("./img/LilFrump.png"), 0, 1200, 200, 200, 0.1, 3, false, false);
     // this.dead = new Animation(ASSET_MANAGER.getAsset("./img/LilFrump.png"), 400, 1200, 200, 200, 1, 1, false, false);
@@ -11,50 +12,76 @@ function Frump(game) {
     this.swordIdle = new Animation(ASSET_MANAGER.getAsset("./img/LilFrump.png"), 0, 1000, 200, 200, 0.4, 2, true, false);
     this.swordAttack = new Animation(ASSET_MANAGER.getAsset("./img/LilFrump.png"), 400, 1000, 272, 272, 0.1, 5, false, false);
 
-    this.radius = 38;
+    this.sides = 38;
+    this.faces = 20;
+    this.radius = 20;
+    this.range = 58;
     this.player = true;
     this.velocity = { x: 0, y: 0 };
     this.acceleration = 100;
     this.maxSpeed = 250;
-    this.currentHealth = new health(this, 10);
+    this.attackTimer = 0;
+    this.hitTimer = 0;
+    this.hit = false;
 
     //new stuff
     this.alive = true;
     this.health = 10;
     this.weapon = "unarmed";
 
-    Entity.call(this, game, 400, 400);
+    Entity.call(this, game, 640, 360);
 }
 
 Frump.prototype = new Entity();
 Frump.prototype.constructor = Frump;
 
 Frump.prototype.update = function () {
-    if (this.game.spawn) this.game.addEntity(new Enemy(this.game));
+    // console.log('P: ' + this.health);
+    if (this.attackTimer > 0) this.attackTimer--;
+    if (this.hitTimer > 0) this.hitTimer--;
+    if (this.hitTimer == 0) this.hit = false;
+    if (this.game.shift && this.game.space) {
+        this.game.shift = false;
+        this.game.space = false;
+    }
     if (this.game.shift) this.weapon = "knife";
     if (this.game.space) this.weapon = "sword";
     if (!this.game.shift & !this.game.space) this.weapon = "unarmed";
-    if (this.game.clickmouse) this.attacking = true;
+    if (this.game.clickmouse && this.attackTimer == 0) {
+        this.attacking = true;
+        if (this.weapon == 'unarmed') this.attackTimer = 110;
+        else if (this.weapon = 'knife') this.attackTimer = 105;
+        else this.attackTimer = 115;
+    }
+    if (this.hit) {
+        if (this.hurting.isDone()) {
+            this.hurting.elapsedTime = 0;
+            this.hit = false;
+        }
+    }
     if (this.attacking) {
-        if(this.weapon == "unarmed"){
+        if(this.weapon == "unarmed") {
+            this.range = 50;
             if (this.attack.isDone()) {
                 this.attack.elapsedTime = 0;
                 this.attacking = false;
-                this.radius = 38;
+                this.attackTimer = 35;
             }
         }
-        if(this.weapon == "knife"){
+        if(this.weapon == "knife") {
+            this.range = 70;
             if (this.knifeAttack.isDone()) {
                 this.knifeAttack.elapsedTime = 0;
                 this.attacking = false;
-                this.radius = 38;
+                this.attackTimer = 10;
             }
         }
-        if(this.weapon == "sword"){
+        if(this.weapon == "sword") {
+            this.range = 100;
             if (this.swordAttack.isDone()) {
                 this.swordAttack.elapsedTime = 0;
                 this.attacking = false;
-                this.radius = 38;
+                this.attackTimer = 20;
             }
         }        
     }
@@ -68,18 +95,6 @@ Frump.prototype.update = function () {
     //         this.isDead == true;
     //     }
     // }
-    
-    //old code
-
-    // if (this.game.clickmouse && this.game.space) this.attacking = true;
-    // if (this.attacking) {
-    //     //this.radius = 68;
-    //     if (this.swordAttack.isDone()) {
-    //         this.swordAttack.elapsedTime = 0;
-    //         this.attacking = false;
-    //         this.radius = 38;
-    //     }
-    // }
 
     if (this.game.up) this.velocity.y -= this.acceleration;
     if (this.game.down) this.velocity.y += this.acceleration;
@@ -89,16 +104,27 @@ Frump.prototype.update = function () {
     if (this.collideLeft() || this.collideRight()) {
         this.velocity.x = -this.velocity.x * (1/friction);
         if (this.collideLeft()) this.x = this.radius;
-        if (this.collideRight()) this.x = 800 - this.radius;
+        if (this.collideRight()) this.x = 1280 - this.radius;
     }
     if (this.collideTop() || this.collideBottom()) {
         this.currentHealth -= 1;
         this.velocity.y = -this.velocity.y * (1/friction);
         if (this.collideTop()) this.y = this.radius;
-        if (this.collideBottom()) this.y = 800 - this.radius;
+        if (this.collideBottom()) this.y = 720 - this.radius;
     }
 
-    
+    for (var i = 0; i < this.game.entities.length; i++) {
+        var ent = this.game.entities[i];
+        if (ent.enemy) {
+            if (this.attacking && this.hurt(ent) && this.attackTimer <= 100 && ent.hitTimer == 0) {
+                ent.health--;
+                ent.hit = true;
+                if (this.weapon == 'knife') ent.hitTimer = 10;
+                else if (this.weapon == 'unarmed') ent.hitTimer = 35;
+                else ent.hitTimer = 40;
+            }
+        }
+    }
 
     var speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
     if (speed > this.maxSpeed) {
@@ -116,8 +142,7 @@ Frump.prototype.update = function () {
 }
 
 Frump.prototype.draw = function (ctx) {
-    this.rotation = Math.atan2(this.game.mouse.y - this.y, this.game.mouse.x - this.x) + Math.PI/2;
-
+    this.rotation = Math.atan2(this.game.mouse.y - this.y, this.game.mouse.x - this.x);
     //handle death animations, kind of
     // if(this.alive == false){
     //     //for the dying animation
@@ -127,24 +152,23 @@ Frump.prototype.draw = function (ctx) {
     //     //supposed to just play the last frame of the death animation
     //     this.dead.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation);
     // }
-    // else{
-        if (this.attacking) {
-            if (this.weapon == "unarmed") this.attack.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation);
-            if (this.weapon == "knife") this.knifeAttack.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation);
-            if (this.weapon == "sword") this.swordAttack.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation);
+    if (this.hit) this.hurting.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation+Math.PI/2);
+    else if (this.attacking) {
+        if (this.weapon == "unarmed") this.attack.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation+Math.PI/2);
+        if (this.weapon == "knife") this.knifeAttack.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation+Math.PI/2);
+        if (this.weapon == "sword") this.swordAttack.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation+Math.PI/2);
+    }
+    else {
+        if (this.game.up || this.game.left || this.game.down || this.game.right) {
+            if (this.weapon == "unarmed") this.walk.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation+Math.PI/2);
+            if (this.weapon == "knife") this.knifeWalk.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation+Math.PI/2);
+            if (this.weapon == "sword") this.swordWalk.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation+Math.PI/2);
         }
         else {
-            if (this.game.up || this.game.left || this.game.down || this.game.right) {
-                if (this.weapon == "unarmed") this.walk.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation);
-                if (this.weapon == "knife") this.knifeWalk.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation);
-                if (this.weapon == "sword") this.swordWalk.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation);
-            }
-            else {
-                if (this.weapon == "unarmed") this.idle.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation);
-                if (this.weapon == "sword") this.swordIdle.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation);
-                if (this.weapon == "knife") this.knifeIdle.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation);
-            }
+            if (this.weapon == "unarmed") this.idle.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation+Math.PI/2);
+            if (this.weapon == "sword") this.swordIdle.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation+Math.PI/2);
+            if (this.weapon == "knife") this.knifeIdle.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation+Math.PI/2);
         }
-    // }
+    }
     Entity.prototype.draw.call(this);
 }

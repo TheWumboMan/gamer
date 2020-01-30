@@ -72,7 +72,6 @@ Background.prototype.draw = function (ctx) {
 }
 
 // the "main" code begins here
-
 var friction = 8;
 
 var ASSET_MANAGER = new AssetManager();
@@ -83,17 +82,18 @@ ASSET_MANAGER.queueDownload("./img/LilFrumpSheet.png");
 ASSET_MANAGER.queueDownload("./img/EnemyBig.png");
 
 ASSET_MANAGER.downloadAll(function () {
-    console.log("starting up da sheild");
+    console.log("loading game...");
     var canvas = document.getElementById('gameWorld');
     var ctx = canvas.getContext('2d');
 
     var gameEngine = new GameEngine();
     var bg = new Background(gameEngine);
     var frump = new Frump(gameEngine);
-    var enemy = new Enemy(gameEngine);
+    //var enemy = new Enemy(gameEngine);
 
     gameEngine.addEntity(bg);
-    gameEngine.addEntity(enemy);
+    var enemies = Math.floor(Math.random()*2+1);
+    for (var j = 0; j < enemies; j++) gameEngine.addEntity(new Enemy(gameEngine));
     gameEngine.addEntity(frump);
  
     gameEngine.init(ctx);
