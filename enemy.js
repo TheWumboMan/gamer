@@ -1,10 +1,12 @@
 function Enemy(game) {
-    this.animation = new Animation(ASSET_MANAGER.getAsset("./img/EnemyBig.png"), 0, 0, 200, 200, 0.12, 8, true, false);
+    this.walk = new Animation(ASSET_MANAGER.getAsset("./img/EnemyBig.png"), 0, 0, 200, 200, 0.12, 8, true, false);
+    this.idle = new Animation(ASSET_MANAGER.getAsset("./img/EnemyBig.png"), 0, 0, 200, 200, 0.12, 1, true, false);
+    this.hurting = new Animation(ASSET_MANAGER.getAsset("./img/EnemyBig.png"), 0, 200, 200, 200, 0.1, 1, false, false);
     this.knifeAttack = new Animation(ASSET_MANAGER.getAsset("./img/LilFrump.png"), 400, 600, 200, 200, 0.1, 4, false, false);
     this.sides = 38;
     this.faces = 20;
     this.radius = 20;
-    this.range = 65;
+    this.range = 70;
     this.hit = false;
     this.attackTimer = 0;
     this.hitTimer = 0;
@@ -13,14 +15,14 @@ function Enemy(game) {
     this.acceleration = 100;
     this.maxSpeed = 125;
     this.health = 10;
-    Entity.call(this, game, Math.random()*(700 - 100)+100, Math.random()*(700 - 100)+100);
+    Entity.call(this, game, Math.random()*(1180 - 100)+100, Math.random()*(620 - 100)+100);
 }
 
 Enemy.prototype = new Entity();
 Enemy.prototype.constructor = Enemy;
 
 Enemy.prototype.update = function () {
-    //console.log('E: ' + this.health);
+    // console.log('E: ' + this.health);
     if (this.health <= 0) {
         this.health = 10;
         this.x = Math.random()*(700-100)+100;
@@ -29,6 +31,12 @@ Enemy.prototype.update = function () {
     if (this.attackTimer > 0) this.attackTimer--;
     if (this.hitTimer > 0) this.hitTimer--;
     if (this.hitTimer == 0) this.hit = false;
+    if (this.hit) {
+        if (this.hurting.isDone()) {
+            this.hurting.elapsedTime = 0;
+            this.hit = false;
+        }
+    }
     if (this.attacking) {
         if (this.knifeAttack.isDone()) {
             this.knifeAttack.elapsedTime = 0;
@@ -39,12 +47,12 @@ Enemy.prototype.update = function () {
     if (this.collideLeft() || this.collideRight()) {
         this.velocity.x = -this.velocity.x * (1/friction);
         if (this.collideLeft()) this.x = this.radius;
-        if (this.collideRight()) this.x = 800 - this.radius;
+        if (this.collideRight()) this.x = 1280 - this.radius;
     }
     if (this.collideTop() || this.collideBottom()) {
         this.velocity.y = -this.velocity.y * (1/friction);
         if (this.collideTop()) this.y = this.radius;
-        if (this.collideBottom()) this.y = 800 - this.radius;
+        if (this.collideBottom()) this.y = 720 - this.radius;
     }
 
     for (var i = 0; i < this.game.entities.length; i++) {
@@ -70,9 +78,9 @@ Enemy.prototype.update = function () {
                 }
                 if (distance(this, ent) < 90 && this.attackTimer == 0) {
                     this.attacking = true;
-                    this.attackTimer = 100;
+                    this.attackTimer = 90;
                 }
-                if (this.attacking && this.hurt(ent) && this.attackTimer <= 80 && !ent.hit) {
+                if (this.attacking && this.hurt(ent) && this.attackTimer <= 75 && ent.hitTimer == 0) {
                     ent.health--;
                     ent.hit = true;
                     ent.hitTimer = this.attackTimer;
@@ -97,7 +105,10 @@ Enemy.prototype.update = function () {
 }
 
 Enemy.prototype.draw = function (ctx) {
-    if (this.attacking) this.knifeAttack.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation+Math.PI/2);
-    else this.animation.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation+Math.PI/2);
+    if (this.hit) this.hurting.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation+Math.PI/2);
+    else if (this.attacking) this.knifeAttack.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation+Math.PI/2);
+    else if (this.velocity.x > -5 && this.velocity.x < 5 && this.velocity.y > -5 && this.velocity.y < 5)
+        this.idle.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation+Math.PI/2);
+    else this.walk.drawFrame(this.game.clockTick, ctx, this.x, this.y, this.rotation+Math.PI/2);
     Entity.prototype.draw.call(this);
 }

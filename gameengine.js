@@ -58,9 +58,10 @@ GameEngine.prototype.start = function () {
 }
 
 GameEngine.prototype.startInput = function () {
-    console.log('Starting input');
+    console.log('starting input');
     var that = this;
     that.space = false;
+    that.shift = false;
 
     var getXandY = function (e) {
         var x = e.clientX - that.ctx.canvas.getBoundingClientRect().left;
@@ -69,16 +70,12 @@ GameEngine.prototype.startInput = function () {
     }
 
     this.ctx.canvas.addEventListener("keydown", function (e) {
-
-        //new
-        if (event.shiftKey) that.shift = !that.shift;
-
         if (String.fromCharCode(e.which) === ' ') that.space = !that.space;
+        if (event.shiftKey) that.shift = !that.shift;
         if (e.keyCode == '38' || e.keyCode == '87') that.up = true;
         if (e.keyCode == '40' || e.keyCode == '83') that.down = true;
         if (e.keyCode == '37' || e.keyCode == '65') that.left = true;
         if (e.keyCode == '39' || e.keyCode == '68') that.right = true;
-        if (e.keyCode == '88') that.spawn = true;
         e.preventDefault();
     }, false);
 
@@ -98,7 +95,7 @@ GameEngine.prototype.startInput = function () {
         that.clickmouse = true;
     }, false);
 
-    console.log('Input started');
+    console.log('input started');
 }
 
 GameEngine.prototype.addEntity = function (entity) {
@@ -138,7 +135,6 @@ GameEngine.prototype.loop = function () {
     this.update();
     this.draw();
     this.clickmouse = false;
-    this.spawn = null;
 }
 
 function distance(a, b) {
@@ -164,7 +160,7 @@ Entity.prototype.collideLeft = function () {
 }
 
 Entity.prototype.collideRight = function () {
-    return (this.x + this.radius) > 800;
+    return (this.x + this.radius) > 1280;
 }
 
 Entity.prototype.collideTop = function () {
@@ -172,19 +168,21 @@ Entity.prototype.collideTop = function () {
 }
 
 Entity.prototype.collideBottom = function () {
-    return (this.y + this.radius) > 800;
+    return (this.y + this.radius) > 720;
 }
 
 Entity.prototype.hurt = function (other) {
-    if (this.enemy) {
+    if (this.enemy && other.player) {
         var rotdif = 0;
-        if (other.rotation < 0) rotdif = this.rotation - other.rotation;
+        if (other.rotation < this.rotation) rotdif = this.rotation - other.rotation;
         else rotdif = other.rotation - this.rotation;
-        if ((rotdif > 3*Math.PI/4 && rotdif < 5*Math.PI/4) || (rotdif > -Math.PI/4 && rotdif < Math.PI/4))
+        if ((rotdif > 3*Math.PI/4 && rotdif < 5*Math.PI/4) || (rotdif > 7*Math.PI/4) || (rotdif < Math.PI/4))
             return distance(this, other) < this.range + other.faces;
         return distance(this, other) < this.range + other.sides;
     }
-    return distance(this, other) < this.range + other.faces;
+    else if (this.player && other.enemy)
+        return distance(this, other) < this.range + other.faces;
+    return distance(this, other) < this.range + other.radius;
 }
 
 Entity.prototype.update = function () {
