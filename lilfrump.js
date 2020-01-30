@@ -107,6 +107,7 @@ Frump.prototype.update = function () {
         if (this.collideRight()) this.x = 1280 - this.radius;
     }
     if (this.collideTop() || this.collideBottom()) {
+        this.currentHealth -= 1;
         this.velocity.y = -this.velocity.y * (1/friction);
         if (this.collideTop()) this.y = this.radius;
         if (this.collideBottom()) this.y = 720 - this.radius;
