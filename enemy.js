@@ -80,7 +80,7 @@ Enemy.prototype.update = function () {
                     this.attacking = true;
                     this.attackTimer = 90;
                 }
-                if (this.attacking && this.hurt(ent) && this.attackTimer <= 75 && ent.hitTimer == 0) {
+                if (this.attacking && this.hurt(ent) && this.attackTimer <= 78 && this.attackTimer >= 66 && ent.hitTimer == 0) {
                     ent.health--;
                     ent.hit = true;
                     ent.hitTimer = this.attackTimer;
