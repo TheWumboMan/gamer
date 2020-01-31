@@ -71,12 +71,29 @@ Background.prototype.draw = function (ctx) {
     Entity.prototype.draw.call(this);
 }
 
+function Street(game, image) {
+    Entity.call(this, game, 0, 0);
+    this.image = image;
+}
+
+Street.prototype = new Entity();
+Street.prototype.constructor = Street;
+
+Street.prototype.update = function() {
+}
+
+Street.prototype.draw = function (ctx) {
+    ctx.drawImage(ASSET_MANAGER.getAsset(this.image), 0, 0);
+    Entity.prototype.draw.call(this);
+}
+
 // the "main" code begins here
 var friction = 8;
 
 var ASSET_MANAGER = new AssetManager();
 
-ASSET_MANAGER.queueDownload("./img/background.png")
+ASSET_MANAGER.queueDownload("./img/background.png");
+ASSET_MANAGER.queueDownload("./img/street1.png");
 ASSET_MANAGER.queueDownload("./img/LilFrump.png");
 ASSET_MANAGER.queueDownload("./img/LilFrumpSheet.png");
 ASSET_MANAGER.queueDownload("./img/EnemyBig.png");
@@ -87,11 +104,12 @@ ASSET_MANAGER.downloadAll(function () {
     var ctx = canvas.getContext('2d');
 
     var gameEngine = new GameEngine();
-    var bg = new Background(gameEngine);
+    //var bg = new Background(gameEngine);
+    var street = new Street(gameEngine, "./img/street1.png");
     var frump = new Frump(gameEngine);
     //var enemy = new Enemy(gameEngine);
 
-    gameEngine.addEntity(bg);
+    gameEngine.addEntity(street);
     var enemies = Math.floor(Math.random()*2+1);
     for (var j = 0; j < enemies; j++) gameEngine.addEntity(new Enemy(gameEngine));
     gameEngine.addEntity(frump);
